@@ -12,6 +12,7 @@
     <string name="allow_zooming_moving_canvas">Масштабирование и перемещение холста жестами</string>
     <string name="clear">Очистить</string>
     <string name="change_background_color">Изменить цвет фона</string>
+    <string name="only_pen_for_drawing">Рисование только с помощью ручки</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

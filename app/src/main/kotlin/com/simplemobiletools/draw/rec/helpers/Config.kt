@@ -41,4 +41,8 @@ class Config(context: Context) : BaseConfig(context) {
     var forcePortraitMode: Boolean
         get() = prefs.getBoolean(FORCE_PORTRAIT_MODE, false)
         set(forcePortraitMode) = prefs.edit().putBoolean(FORCE_PORTRAIT_MODE, forcePortraitMode).apply()
+
+    var onlyPenForDrawing: Boolean
+        get() = prefs.getBoolean(ONLY_PEN_FOR_DRAWING, false)
+        set(onlyPenForDrawing) = prefs.edit().putBoolean(ONLY_PEN_FOR_DRAWING, onlyPenForDrawing).apply()
 }

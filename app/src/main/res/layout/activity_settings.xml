@@ -186,6 +186,22 @@
                         android:text="@string/force_portrait_mode" />
 
                 </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settings_only_pen_drawing_holder"
+                    style="@style/SettingsHolderCheckboxStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/ripple_bottom_corners">
+
+                    <com.simplemobiletools.commons.views.MyAppCompatCheckbox
+                        android:id="@+id/settings_only_pen_drawing"
+                        style="@style/SettingsCheckboxStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/only_pen_for_drawing" />
+
+                </RelativeLayout>
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
