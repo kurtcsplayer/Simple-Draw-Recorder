@@ -26,6 +26,7 @@ class SettingsActivity : SimpleActivity() {
         setupBrushSize()
         setupAllowZoomingCanvas()
         setupForcePortraitMode()
+        setupOnlyPenForDrawing()
         updateTextColors(settings_holder)
 
         arrayOf(settings_color_customization_label, settings_general_settings_label).forEach {
@@ -95,6 +96,14 @@ class SettingsActivity : SimpleActivity() {
         settings_force_portrait_holder.setOnClickListener {
             settings_force_portrait.toggle()
             config.forcePortraitMode = settings_force_portrait.isChecked
+        }
+    }
+
+    private fun setupOnlyPenForDrawing() {
+        settings_only_pen_drawing.isChecked = config.onlyPenForDrawing
+        settings_only_pen_drawing_holder.setOnClickListener {
+            settings_only_pen_drawing.toggle()
+            config.onlyPenForDrawing = settings_only_pen_drawing.isChecked
         }
     }
 }

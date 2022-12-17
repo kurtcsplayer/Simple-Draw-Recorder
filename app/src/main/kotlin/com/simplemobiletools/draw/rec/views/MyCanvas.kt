@@ -7,6 +7,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.MotionEvent.INVALID_POINTER_ID
+import android.view.MotionEvent.TOOL_TYPE_STYLUS
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
@@ -16,6 +17,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.simplemobiletools.commons.extensions.toast
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.draw.rec.R
+import com.simplemobiletools.draw.rec.extensions.config
 import com.simplemobiletools.draw.rec.extensions.contains
 import com.simplemobiletools.draw.rec.extensions.floodFill
 import com.simplemobiletools.draw.rec.interfaces.CanvasListener
@@ -146,6 +148,12 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
         val touchPercentageY = y / height
         val compensationY = (scaledHeight / 2) * (1 - mScaleFactor)
         val newValueY = scaledHeight * touchPercentageY - compensationY - (mPosY / mScaleFactor)
+
+        if (context.config.onlyPenForDrawing) {
+            if (event.getToolType(0) != TOOL_TYPE_STYLUS) {
+                return false
+            }
+        }
 
         when (action) {
             MotionEvent.ACTION_DOWN -> {
