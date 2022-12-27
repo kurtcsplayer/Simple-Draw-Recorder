@@ -15,7 +15,7 @@ android {
         applicationId "com.simplemobiletools.draw.rec"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 75
+        versionCode 76
         versionName "6.8.2"
         setProperty("archivesBaseName", "draw")
         vectorDrawables.useSupportLibrary = true
@@ -42,6 +42,12 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             }
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "${variant.name}-${variant.versionCode}-${new Date().format('yyyyMMddHHmmss')}.apk"
         }
     }
 

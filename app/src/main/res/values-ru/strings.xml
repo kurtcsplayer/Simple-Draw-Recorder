@@ -3,10 +3,17 @@
     <string name="app_name">Простое рисование</string>
     <string name="app_launcher_name">Рисование(запись)</string>
     <string name="open_file">Открыть файл</string>
+    <string name="start_log">Начать запись</string>
+    <string name="finish_log">Закончить запись</string>
     <string name="eraser">Ластик</string>
     <string name="eyedropper">Пипетка</string>
     <string name="bucket_fill">Заливка</string>
     <string name="failed_to_load_image">Невозможно загрузить изображение %s</string>
+
+    <!-- Alerts -->
+    <string name="alert_title_warning">Внимание</string>
+    <string name="alert_message_wrong_img_aspect_ratio">Соотношение сторон изображения не совпадает с экраном</string>
+
     <!-- Settings -->
     <string name="show_brush_size">Показать размер кисти</string>
     <string name="allow_zooming_moving_canvas">Масштабирование и перемещение холста жестами</string>
