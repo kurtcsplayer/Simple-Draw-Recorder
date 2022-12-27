@@ -5,27 +5,35 @@ import android.content.Context
 import android.graphics.*
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.MotionEvent.INVALID_POINTER_ID
 import android.view.MotionEvent.TOOL_TYPE_STYLUS
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.request.RequestOptions
 import com.simplemobiletools.commons.extensions.toast
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.draw.rec.R
+import com.simplemobiletools.draw.rec.dialogs.showAlert
 import com.simplemobiletools.draw.rec.extensions.config
 import com.simplemobiletools.draw.rec.extensions.contains
 import com.simplemobiletools.draw.rec.extensions.floodFill
+import com.simplemobiletools.draw.rec.extensions.toInt
+import com.simplemobiletools.draw.rec.helpers.TouchRecorder
 import com.simplemobiletools.draw.rec.interfaces.CanvasListener
 import com.simplemobiletools.draw.rec.models.CanvasOp
 import com.simplemobiletools.draw.rec.models.MyParcelable
 import com.simplemobiletools.draw.rec.models.MyPath
 import com.simplemobiletools.draw.rec.models.PaintOptions
+import java.util.*
 import java.util.concurrent.ExecutionException
+import kotlin.collections.ArrayList
+import kotlin.concurrent.fixedRateTimer
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -72,12 +80,22 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var mCenter: PointF? = null
     private var maxCanvasWidth: Int = 0
     private var maxCanvasHeight: Int = 0
+    private val maxCanvasRatio get() = this.maxCanvasHeight / this.maxCanvasWidth.toDouble()
 
     private var mScaleDetector: ScaleGestureDetector? = null
     private var mScaleFactor = 1f
 
     private var mLastMotionEvent: MotionEvent? = null
     private var mTouchSloppedBeforeMultitouch: Boolean = false
+
+    var recordTimer: Timer? = null
+        private set
+
+    private var xPos: Int = 0
+    private var yPos: Int = 0
+    private var isTouches: Boolean = false
+    var currentRecFilePath: String = "ERROR!"
+        private set
 
     init {
         mPaint.apply {
@@ -135,6 +153,8 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
         try {
             x = event.getX(pointerIndex)
             y = event.getY(pointerIndex)
+            xPos = x.toInt()
+            yPos = y.toInt()
         } catch (e: Exception) {
             return true
         }
@@ -157,6 +177,7 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         when (action) {
             MotionEvent.ACTION_DOWN -> {
+                isTouches = true
                 mWasScalingInGesture = false
                 mWasMovingCanvasInGesture = false
                 mWasMultitouch = false
@@ -189,6 +210,7 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
                 mLastTouchY = y
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                isTouches = false
                 mActivePointerId = INVALID_POINTER_ID
                 actionUp(false)
                 mWasScalingInGesture = false
@@ -327,6 +349,11 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
                 mBackgroundBitmap = builder.get()
                 activity.runOnUiThread {
+                    if (mBackgroundBitmap != null) {
+                        if ((mBackgroundBitmap!!.height / mBackgroundBitmap!!.width.toDouble()) != maxCanvasRatio) {
+                            showAlert(context, R.string.alert_title_warning, R.string.alert_message_wrong_img_aspect_ratio)
+                        }
+                    }
                     invalidate()
                 }
             } catch (e: ExecutionException) {
@@ -494,5 +521,37 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
         if (maxCanvasHeight < height) {
             maxCanvasHeight = height
         }
+    }
+
+    fun startLogRecord() {
+        currentRecFilePath = TouchRecorder.newFile(context)
+        Toast.makeText(context, "Started record to file: $currentRecFilePath", Toast.LENGTH_LONG)
+            .show()
+        val startAt = Date()
+        val builder = StringBuilder()
+        recordTimer = fixedRateTimer(
+            name = "touchRecorderTimer",
+            daemon = false,
+            startAt = startAt,
+            period = 5
+        ) {
+            val timestamp = System.currentTimeMillis() - startAt.time
+            builder.append(timestamp)
+                .append(" ").append(isTouches.toInt())
+                .append(" ").append(xPos)
+                .append(" ").append(yPos)
+                .append("\n")
+            TouchRecorder.write(builder.toString())
+            Log.d("Timer", builder.toString())
+            builder.clear()
+        }
+    }
+
+    fun stopLogRecord() {
+        recordTimer?.cancel()
+        recordTimer = null
+        TouchRecorder.closeFile()
+        Toast.makeText(context, "Finished record to file: $currentRecFilePath", Toast.LENGTH_LONG)
+            .show()
     }
 }

@@ -29,6 +29,11 @@
         android:title="@string/open_file"
         app:showAsAction="never" />
     <item
+        android:id="@+id/manage_log"
+        android:showAsAction="never"
+        android:title="@string/start_log"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/change_background"
         android:showAsAction="never"
         android:title="@string/change_background_color"

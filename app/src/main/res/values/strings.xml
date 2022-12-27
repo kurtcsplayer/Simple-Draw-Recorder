@@ -3,10 +3,17 @@
     <string name="app_name">Simple Draw</string>
     <string name="app_launcher_name">Draw</string>
     <string name="open_file">Open file</string>
+    <string name="start_log">Start log</string>
+    <string name="finish_log">Finish log</string>
     <string name="eraser">Eraser</string>
     <string name="eyedropper">Eyedropper</string>
     <string name="bucket_fill">Bucket fill</string>
     <string name="failed_to_load_image">Failed to load image %s</string>
+
+    <!-- Alerts -->
+    <string name="alert_title_warning">Warning</string>
+    <string name="alert_button_ok" translatable="false">OK</string>
+    <string name="alert_message_wrong_img_aspect_ratio">Image aspect ratio does not match your display</string>
 
     <!-- Settings -->
     <string name="show_brush_size">Show brush size tool</string>

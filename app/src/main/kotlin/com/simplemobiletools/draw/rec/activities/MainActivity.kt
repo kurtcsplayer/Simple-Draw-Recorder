@@ -31,13 +31,12 @@ import com.simplemobiletools.commons.models.FileDirItem
 import com.simplemobiletools.commons.models.Release
 import com.simplemobiletools.draw.rec.BuildConfig
 import com.simplemobiletools.draw.rec.R
+import com.simplemobiletools.draw.rec.dialogs.SaveFileDialog
 import com.simplemobiletools.draw.rec.dialogs.SaveImageDialog
 import com.simplemobiletools.draw.rec.extensions.config
-import com.simplemobiletools.draw.rec.helpers.EyeDropper
-import com.simplemobiletools.draw.rec.helpers.JPG
-import com.simplemobiletools.draw.rec.helpers.PNG
-import com.simplemobiletools.draw.rec.helpers.SVG
+import com.simplemobiletools.draw.rec.helpers.*
 import com.simplemobiletools.draw.rec.interfaces.CanvasListener
+import com.simplemobiletools.draw.rec.models.SaveFileType
 import com.simplemobiletools.draw.rec.models.Svg
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
@@ -48,6 +47,7 @@ import java.io.OutputStream
 class MainActivity : SimpleActivity(), CanvasListener {
     private val PICK_IMAGE_INTENT = 1
     private val SAVE_IMAGE_INTENT = 2
+    private val WRITE_EXT_STORAGE_REQ_CODE = 100
 
     private val FOLDER_NAME = "images"
     private val FILE_NAME = "simple-draw.png"
@@ -93,8 +93,8 @@ class MainActivity : SimpleActivity(), CanvasListener {
 
         setBackgroundColor(config.canvasBackgroundColor)
         setColor(config.brushColor)
-        defaultPath = config.lastSaveFolder
-        defaultExtension = config.lastSaveExtension
+        defaultPath = config.lastImgSaveFolder
+        defaultExtension = config.lastImgSaveExtension
 
         brushSize = config.brushSize
         updateBrushSize()
@@ -201,6 +201,9 @@ class MainActivity : SimpleActivity(), CanvasListener {
             findItem(R.id.menu_save).isVisible = !isImageCaptureIntent && !isEditIntent
             findItem(R.id.menu_share).isVisible = !isImageCaptureIntent && !isEditIntent
             findItem(R.id.open_file).isVisible = !isEditIntent
+            findItem(R.id.manage_log).title = if (my_canvas.recordTimer == null)
+                resources.getString(R.string.start_log)
+            else resources.getString(R.string.finish_log)
         }
     }
 
@@ -212,6 +215,7 @@ class MainActivity : SimpleActivity(), CanvasListener {
                 R.id.menu_share -> shareImage()
                 R.id.clear -> clearCanvas()
                 R.id.open_file -> tryOpenFile()
+                R.id.manage_log -> manageLog()
                 R.id.change_background -> changeBackgroundClicked()
                 R.id.menu_print -> printImage()
                 R.id.settings -> launchSettings()
@@ -285,6 +289,33 @@ class MainActivity : SimpleActivity(), CanvasListener {
             } catch (e: Exception) {
                 showErrorToast(e)
             }
+        }
+    }
+
+    private fun manageLog() {
+        if (my_canvas.recordTimer == null) {
+            my_canvas.startLogRecord()
+        } else {
+            my_canvas.stopLogRecord()
+            saveLogRecord()
+        }
+        refreshMenuItems()
+        toggleAppBar()
+    }
+
+    private fun saveLogRecord() {
+        SaveFileDialog(
+            activity = this,
+            defaultPath = config.lastRecSaveFolder,
+            defaultFilename = my_canvas.currentRecFilePath.getFilenameFromPath(),
+            fileType = SaveFileType.TOUCH_RECORD,
+            defaultExtension = config.lastRecSaveExtension.ifEmpty { TXT },
+            hidePath = false
+        ) { fullPath, filename, extension ->
+            savedPathsHash = my_canvas.getDrawingHashCode()
+            saveFile(fullPath)
+            config.lastRecSaveFolder = fullPath.getParentPath()
+            config.lastRecSaveExtension = extension
         }
     }
 
@@ -523,7 +554,7 @@ class MainActivity : SimpleActivity(), CanvasListener {
 
                 defaultFilename = filename
                 defaultExtension = extension
-                config.lastSaveExtension = extension
+                config.lastImgSaveExtension = extension
 
                 Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                     type = "image/$mimetype"
@@ -547,20 +578,33 @@ class MainActivity : SimpleActivity(), CanvasListener {
     }
 
     private fun saveImage() {
-        SaveImageDialog(this, defaultPath, defaultFilename, defaultExtension, false) { fullPath, filename, extension ->
+        SaveFileDialog(
+            this,
+            defaultPath,
+            defaultFilename,
+            SaveFileType.IMAGE,
+            defaultExtension,
+            false
+        ) { fullPath, filename, extension ->
             savedPathsHash = my_canvas.getDrawingHashCode()
             saveFile(fullPath)
             defaultPath = fullPath.getParentPath()
             defaultFilename = filename
             defaultExtension = extension
-            config.lastSaveFolder = defaultPath
-            config.lastSaveExtension = extension
+            config.lastImgSaveFolder = defaultPath
+            config.lastImgSaveExtension = extension
         }
     }
 
     private fun saveFile(path: String) {
         when (path.getFilenameExtension()) {
             SVG -> Svg.saveSvg(this, path, my_canvas)
+            TXT -> {
+                try {
+                    TouchRecorder.moveFile(from = my_canvas.currentRecFilePath, destination = path)
+                } catch (ignore: Exception) { ignore.printStackTrace() }
+                toast(R.string.file_saved)
+            }
             else -> saveImageFile(path)
         }
         rescanPaths(arrayListOf(path)) {}

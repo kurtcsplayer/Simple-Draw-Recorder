@@ -26,13 +26,21 @@ class Config(context: Context) : BaseConfig(context) {
         get() = prefs.getInt(CANVAS_BACKGROUND_COLOR, Color.WHITE)
         set(canvasBackgroundColor) = prefs.edit().putInt(CANVAS_BACKGROUND_COLOR, canvasBackgroundColor).apply()
 
-    var lastSaveFolder: String
-        get() = prefs.getString(LAST_SAVE_FOLDER, "")!!
-        set(lastSaveFolder) = prefs.edit().putString(LAST_SAVE_FOLDER, lastSaveFolder).apply()
+    var lastImgSaveFolder: String
+        get() = prefs.getString(LAST_SAVE_IMG_FOLDER, "")!!
+        set(lastSaveFolder) = prefs.edit().putString(LAST_SAVE_IMG_FOLDER, lastSaveFolder).apply()
 
-    var lastSaveExtension: String
-        get() = prefs.getString(LAST_SAVE_EXTENSION, "")!!
-        set(lastSaveExtension) = prefs.edit().putString(LAST_SAVE_EXTENSION, lastSaveExtension).apply()
+    var lastImgSaveExtension: String
+        get() = prefs.getString(LAST_SAVE_IMG_EXTENSION, "")!!
+        set(lastSaveExtension) = prefs.edit().putString(LAST_SAVE_IMG_EXTENSION, lastSaveExtension).apply()
+
+    var lastRecSaveFolder: String
+        get() = prefs.getString(LAST_SAVE_REC_FOLDER, "")!!
+        set(lastSaveFolder) = prefs.edit().putString(LAST_SAVE_REC_FOLDER, lastSaveFolder).apply()
+
+    var lastRecSaveExtension: String
+        get() = prefs.getString(LAST_SAVE_REC_EXTENSION, "")!!
+        set(lastSaveFolder) = prefs.edit().putString(LAST_SAVE_REC_EXTENSION, lastSaveFolder).apply()
 
     var allowZoomingCanvas: Boolean
         get() = prefs.getBoolean(ALLOW_ZOOMING_CANVAS, true)
