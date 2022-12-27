@@ -14,7 +14,6 @@ import java.util.*
 class TouchRecorder {
     companion object {
         private const val FILE_NAME_PREFIX = "paintLog_"
-        private const val FILE_NAME_EXTENSION = ".txt"
         private var file: File? = null
         private var fileOutputStream: OutputStream? = null
         private var bufferedWriter: BufferedWriter? = null
@@ -23,7 +22,7 @@ class TouchRecorder {
         fun newFile(context: Context): String {
             fileOutputStream?.close()
             val simpleDf = SimpleDateFormat("dd_MM_yyyy_HH_mm_ss")
-            val fileName = FILE_NAME_PREFIX + simpleDf.format(Date()) + FILE_NAME_EXTENSION
+            val fileName = FILE_NAME_PREFIX + simpleDf.format(Date())
             val filePath = context.getExternalFilesDir(null)
             val appFolderName = getAppName(context)
             val appFolder = File(filePath, appFolderName)

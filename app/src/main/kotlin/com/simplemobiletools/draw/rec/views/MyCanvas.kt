@@ -23,17 +23,11 @@ import com.simplemobiletools.draw.rec.dialogs.showAlert
 import com.simplemobiletools.draw.rec.extensions.config
 import com.simplemobiletools.draw.rec.extensions.contains
 import com.simplemobiletools.draw.rec.extensions.floodFill
-import com.simplemobiletools.draw.rec.extensions.toInt
 import com.simplemobiletools.draw.rec.helpers.TouchRecorder
 import com.simplemobiletools.draw.rec.interfaces.CanvasListener
-import com.simplemobiletools.draw.rec.models.CanvasOp
-import com.simplemobiletools.draw.rec.models.MyParcelable
-import com.simplemobiletools.draw.rec.models.MyPath
-import com.simplemobiletools.draw.rec.models.PaintOptions
+import com.simplemobiletools.draw.rec.models.*
 import java.util.*
 import java.util.concurrent.ExecutionException
-import kotlin.collections.ArrayList
-import kotlin.concurrent.fixedRateTimer
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -88,14 +82,11 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var mLastMotionEvent: MotionEvent? = null
     private var mTouchSloppedBeforeMultitouch: Boolean = false
 
-    var recordTimer: Timer? = null
+    var recordStartedAt: Date? = null
         private set
-
-    private var xPos: Int = 0
-    private var yPos: Int = 0
-    private var isTouches: Boolean = false
     var currentRecFilePath: String = "ERROR!"
         private set
+    private val logBuilder = StringBuilder()
 
     init {
         mPaint.apply {
@@ -153,8 +144,6 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
         try {
             x = event.getX(pointerIndex)
             y = event.getY(pointerIndex)
-            xPos = x.toInt()
-            yPos = y.toInt()
         } catch (e: Exception) {
             return true
         }
@@ -177,7 +166,7 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         when (action) {
             MotionEvent.ACTION_DOWN -> {
-                isTouches = true
+                writeLogData(logEvent = LogEvent.TOUCH_DOWN, xPos = x, yPos = y)
                 mWasScalingInGesture = false
                 mWasMovingCanvasInGesture = false
                 mWasMultitouch = false
@@ -190,6 +179,7 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
                 updateRedoVisibility(false)
             }
             MotionEvent.ACTION_MOVE -> {
+                writeLogData(logEvent = LogEvent.TOUCH_DOWN, xPos = x, yPos = y)
                 if (mTouchSloppedBeforeMultitouch) {
                     mPath.reset()
                     mTouchSloppedBeforeMultitouch = false
@@ -210,7 +200,7 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
                 mLastTouchY = y
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                isTouches = false
+                writeLogData(logEvent = LogEvent.TOUCH_UP, xPos = x, yPos = y)
                 mActivePointerId = INVALID_POINTER_ID
                 actionUp(false)
                 mWasScalingInGesture = false
@@ -527,29 +517,24 @@ class MyCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
         currentRecFilePath = TouchRecorder.newFile(context)
         Toast.makeText(context, "Started record to file: $currentRecFilePath", Toast.LENGTH_LONG)
             .show()
-        val startAt = Date()
-        val builder = StringBuilder()
-        recordTimer = fixedRateTimer(
-            name = "touchRecorderTimer",
-            daemon = false,
-            startAt = startAt,
-            period = 5
-        ) {
-            val timestamp = System.currentTimeMillis() - startAt.time
-            builder.append(timestamp)
-                .append(" ").append(isTouches.toInt())
-                .append(" ").append(xPos)
-                .append(" ").append(yPos)
-                .append("\n")
-            TouchRecorder.write(builder.toString())
-            Log.d("Timer", builder.toString())
-            builder.clear()
-        }
+        recordStartedAt = Date()
+    }
+
+    fun writeLogData(logEvent: LogEvent, xPos: Float, yPos: Float) {
+        val timestamp = System.currentTimeMillis() - (recordStartedAt?.time ?: Date().time)
+        logBuilder.append(timestamp)
+            .append(" ").append(logEvent.value)
+            .append(" ").append(xPos.toInt())
+            .append(" ").append(yPos.toInt())
+            .append("\n")
+        TouchRecorder.write(logBuilder.toString())
+        Log.d("Timer", logBuilder.toString())
+        logBuilder.clear()
     }
 
     fun stopLogRecord() {
-        recordTimer?.cancel()
-        recordTimer = null
+        writeLogData(logEvent = LogEvent.END, 0.0F, 0.0F)
+        recordStartedAt = null
         TouchRecorder.closeFile()
         Toast.makeText(context, "Finished record to file: $currentRecFilePath", Toast.LENGTH_LONG)
             .show()

@@ -201,7 +201,7 @@ class MainActivity : SimpleActivity(), CanvasListener {
             findItem(R.id.menu_save).isVisible = !isImageCaptureIntent && !isEditIntent
             findItem(R.id.menu_share).isVisible = !isImageCaptureIntent && !isEditIntent
             findItem(R.id.open_file).isVisible = !isEditIntent
-            findItem(R.id.manage_log).title = if (my_canvas.recordTimer == null)
+            findItem(R.id.manage_log).title = if (my_canvas.recordStartedAt == null)
                 resources.getString(R.string.start_log)
             else resources.getString(R.string.finish_log)
         }
@@ -293,7 +293,7 @@ class MainActivity : SimpleActivity(), CanvasListener {
     }
 
     private fun manageLog() {
-        if (my_canvas.recordTimer == null) {
+        if (my_canvas.recordStartedAt == null) {
             my_canvas.startLogRecord()
         } else {
             my_canvas.stopLogRecord()
